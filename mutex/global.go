@@ -7,12 +7,15 @@ import (
 
 var mapping map[uuid.UUID]*sync.Mutex
 
-func QueueStateMutex(clientId uuid.UUID) *sync.Mutex {
-	if mapping[clientId] == nil {
-		var m sync.Mutex
-		mapping[clientId] = &m
+func GetMutex(id uuid.UUID) *sync.Mutex {
+	if mapping == nil {
+		mapping = make(map[uuid.UUID]*sync.Mutex)
 	}
-	return mapping[clientId]
+	if mapping[id] == nil {
+		var m sync.Mutex
+		mapping[id] = &m
+	}
+	return mapping[id]
 }
 
 func PopMutex(uuid uuid.UUID) {

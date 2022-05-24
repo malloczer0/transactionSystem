@@ -13,6 +13,8 @@ type Config struct {
 	PgURL            string `envconfig:"PG_URL"`
 	PgMigrationsPath string `envconfig:"PG_MIGRATIONS_PATH"`
 	HTTPAddr         string `envconfig:"HTTP_ADDR"`
+	PgUser           string `envconfig:"PG_USER"`
+	PgPassword       string `envconfig:"PG_PASSWORD"`
 }
 
 var (

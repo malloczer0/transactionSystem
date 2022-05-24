@@ -29,24 +29,28 @@ func run() error {
 
 	ctx := context.Background()
 	cfg := config.Get()
-	log := logger.Get()
+	logger := logger.Get()
 
-	// Init repository storeObject (with postgresql inside)
+	// Init repository store object (with postgresql inside)
+	log.Println("Init repository store object")
 	storeObject, err := store.New(ctx)
 	if err != nil {
 		return errors.Wrap(err, "storeObject.New failed")
 	}
 
 	// Init service manager
+	log.Println("Init service manager")
 	serviceManager, err := service.NewManager(ctx, storeObject)
 	if err != nil {
 		return errors.Wrap(err, "manager.New failed")
 	}
 
 	// Init controllers
-	transactionController := controller.NewTransactions(ctx, serviceManager, log)
+	log.Println("Init controllers")
+	transactionController := controller.NewTransactions(ctx, serviceManager, logger)
 
 	// Initialize Echo instance
+	log.Println("Initialize Echo instance")
 	echoObject := echo.New()
 	echoObject.Validator = validator.NewValidator()
 	echoObject.HTTPErrorHandler = libError.Error
@@ -69,10 +73,21 @@ func run() error {
 	transactionRoutes.POST("/create", transactionController.Create)
 
 	// Init client pool
-	clientPool, _ := pool.Initialisation(ctx, storeObject)
+	log.Println("Init client pool")
+	err = func() error {
+		err = pool.Initialisation(ctx, storeObject)
+		if err != nil {
+			return errors.Wrap(err, "pool.Initialisation failed")
+		}
+		return nil
+	}()
 
 	// Init pool handler
-	go pool.Handler(ctx, *serviceManager, clientPool)
+	log.Println("Init pool handler")
+	go pool.Handler(ctx, storeObject)
+	if err != nil {
+		return errors.Wrap(err, "pool.Handler failed")
+	}
 
 	// Start server
 	server := &http.Server{

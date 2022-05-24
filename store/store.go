@@ -21,10 +21,18 @@ type Store struct {
 func New(ctx context.Context) (*Store, error) {
 
 	// connect to Postgres
-	pgDB, err := pg.Dial()
-	if err != nil {
-		return nil, errors.Wrap(err, "pgdb.Dial failed")
-	}
+	pgDB := func() *pg.DB {
+		for {
+			pgDB, err := pg.Dial()
+			if err == nil {
+				return pgDB
+				//return nil, errors.Wrap(err, "pgdb.Dial failed")
+			}
+			log.Println("pgdb.Dial failed")
+			t := time.Second * 3
+			time.Sleep(t)
+		}
+	}()
 
 	// Run Postgres migrations
 	if pgDB != nil {
@@ -42,6 +50,11 @@ func New(ctx context.Context) (*Store, error) {
 		go store.KeepAlivePg()
 		store.Transaction = pg.NewTransactionRepo(pgDB)
 		store.Client = pg.NewClientRepo(pgDB)
+	}
+
+	err := pg.CreateSchema(pgDB.DB)
+	if err != nil {
+		panic(err)
 	}
 
 	return &store, nil

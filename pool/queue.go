@@ -3,16 +3,20 @@ package pool
 import (
 	"container/list"
 	"github.com/google/uuid"
+	"sync"
 )
 
-var mapping map[uuid.UUID]*list.List
+var Mapping sync.Map
 
-func QueueState(clientId uuid.UUID) chan *list.List {
-	channel := make(chan *list.List)
-	channel <- mapping[clientId]
-	return channel
+func QueueState(clientId uuid.UUID) *list.List {
+	loaded, ok := Mapping.Load(clientId)
+	if !ok {
+		Mapping.Store(clientId, list.New())
+		loaded, ok = Mapping.Load(clientId)
+	}
+	return loaded.(*list.List)
 }
 
-func UpdateQueueState(clientId uuid.UUID, queue *list.List) {
-	mapping[clientId] = queue
+func UpdateQueuePoolState(clientId uuid.UUID, queue *list.List) {
+	Mapping.Store(clientId, queue)
 }

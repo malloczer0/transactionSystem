@@ -21,6 +21,9 @@ func Dial() (*DB, error) {
 		return nil, nil
 	}
 	pgOpts, err := pg.ParseURL(cfg.PgURL)
+	pgOpts.User = cfg.PgUser
+	pgOpts.Password = cfg.PgPassword
+
 	if err != nil {
 		return nil, err
 	}

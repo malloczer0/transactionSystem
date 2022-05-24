@@ -40,6 +40,7 @@ func (transactionWebService *TransactionWebService) GetTransaction(ctx context.C
 // GetPending ...
 func (transactionWebService *TransactionWebService) GetPending(ctx context.Context) (*[]model.Transaction, error) {
 	db, err := transactionWebService.store.Transaction.GetPending(ctx)
+
 	if err != nil {
 		return nil, errors.Wrap(err, "transactionWebService.transaction.GetPending")
 	}
@@ -48,8 +49,8 @@ func (transactionWebService *TransactionWebService) GetPending(ctx context.Conte
 	}
 
 	var transactions []model.Transaction
-	for index, transaction := range *db {
-		transactions[index] = *transaction.ToWeb()
+	for _, transaction := range *db {
+		transactions = append(transactions, *transaction.ToWeb())
 	}
 
 	return &transactions, nil

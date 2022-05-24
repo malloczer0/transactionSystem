@@ -1,6 +1,6 @@
 module transactionSystemTestTask
 
-go 1.17
+go 1.18
 
 require (
 	github.com/evt/rest-api-example v0.0.0-20210512205754-1e80c8a3e024

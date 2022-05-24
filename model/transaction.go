@@ -9,7 +9,7 @@ import (
 type Transaction struct {
 	ID        uuid.UUID `json:"id"`
 	ClientId  uuid.UUID `json:"client_id" validate:"required"`
-	Status    int8      `json:"status" validate:"required:gte=-1,lte=1"`
+	Status    int8      `json:"status"`
 	Change    float64   `json:"change"`
 	CreatedAt time.Time `json:"created_at"`
 }

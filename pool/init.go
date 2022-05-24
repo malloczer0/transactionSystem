@@ -3,27 +3,33 @@ package pool
 import (
 	"container/list"
 	"context"
-	"github.com/google/uuid"
 	"gopkg.in/errgo.v2/fmt/errors"
+	"log"
 	"transactionSystemTestTask/service"
 	"transactionSystemTestTask/store"
 )
 
-func Initialisation(ctx context.Context, store *store.Store) (chan map[uuid.UUID]*list.List, error) {
+func Initialisation(ctx context.Context, store *store.Store) error {
 
 	// Get pending transactions
 	pending, err := service.NewTransactionWebService(ctx, store).GetPending(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return errors.Wrap(err)
 	}
 
-	var pool map[uuid.UUID]*list.List
+	log.Println("Pulling pending transactions")
+
+	queues := &Mapping
 	for _, transaction := range *pending {
-		if pool[transaction.ID] == nil {
-			pool[transaction.ID] = list.New()
+		loaded, ok := queues.Load(transaction.ClientId)
+		if !ok {
+			queues.Store(transaction.ClientId, list.New())
+			loaded, ok = queues.Load(transaction.ClientId)
 		}
-		pool[transaction.ID].PushBack(transaction)
+		queue := loaded.(*list.List)
+		queue.PushBack(transaction)
 	}
-	var channel = make(chan map[uuid.UUID]*list.List)
-	return channel, nil
+
+	log.Println("Pool initialised")
+	return nil
 }

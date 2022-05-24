@@ -39,7 +39,7 @@ func (ctr *TransactionController) Create(ctx echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnprocessableEntity, err)
 	}
-	_, err = pool.Update(ctx.Request().Context(), *ctr.services, &transaction)
+	_, err = pool.UpdatePool(ctx.Request().Context(), *ctr.services, &transaction)
 	if err != nil {
 		return err
 	}
