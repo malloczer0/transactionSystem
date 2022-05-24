@@ -39,10 +39,6 @@ func (ctr *TransactionController) Create(ctx echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnprocessableEntity, err)
 	}
-	_, err = pool.UpdatePool(ctx.Request().Context(), *ctr.services, &transaction)
-	if err != nil {
-		return err
-	}
 	createdTransaction, err := ctr.services.Transaction.CreateTransaction(ctx.Request().Context(), &transaction)
 	if err != nil {
 		switch {
@@ -52,6 +48,7 @@ func (ctr *TransactionController) Create(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "could not create transaction"))
 		}
 	}
+	pool.UpdatePool(createdTransaction)
 	ctr.logger.Debug().Msgf("Created transaction '%s'", createdTransaction.ID.String())
 	return ctx.JSON(http.StatusCreated, createdTransaction)
 }

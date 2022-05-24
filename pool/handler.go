@@ -14,10 +14,8 @@ import (
 )
 
 func Handler(ctx context.Context, store *store.Store) {
-	log.Println("Running handler")
 	for {
 		Mapping.Range(func(key, value any) bool {
-			log.Println(key, value)
 
 			var (
 				id    = key.(uuid.UUID)
@@ -68,16 +66,15 @@ func handleTransactionQueue(ctx context.Context, store *store.Store, uuid uuid.U
 	}
 }
 
-func UpdatePool(ctx context.Context, svc service.Manager, transaction *model.Transaction) (*model.Transaction, error) {
+func UpdatePool(transaction *model.Transaction) *model.Transaction {
 	var mutex = globalMutex.GetMutex(transaction.ClientId)
 	mutex.TryLock()
 	id := &transaction.ClientId
 	queue := QueueState(*id)
-	queue.PushBack(transaction)
+	queue.PushBack(*transaction)
 	UpdateQueuePoolState(*id, queue)
 	mutex.Unlock()
-	createTransaction, err := svc.Transaction.CreateTransaction(ctx, transaction)
-	return createTransaction, err
+	return transaction
 }
 
 func processSQL(ctx context.Context, store *store.Store, transaction *model.Transaction) error {
